@@ -20,7 +20,7 @@ metadata:
 
 **CRITICAL — 新建演示文稿或大幅改写页面时，规划 `asset_need` MUST 遵循 [asset-planning.md](references/asset-planning.md)：只做元数据规划，必须有 `fallback_if_missing`，不得要求真实搜索、下载或上传素材。**
 
-**CRITICAL — 创建或大幅改写后，MUST 按 [validation-checklist.md](references/validation-checklist.md) 做显式验证：回读全文 XML、核对页数和关键元素、检查空白/破损页、明显溢出、布局风险；本地 XML 可用时运行 `layout_lint.py`。**
+**CRITICAL — 创建或大幅改写后，MUST 按 [validation-checklist.md](references/validation-checklist.md) 做显式验证：回读全文 XML、核对页数和关键元素、检查空白/破损页、明显溢出、布局风险。**
 
 **CRITICAL — 创建前自检或失败排障时，MUST 按 [troubleshooting.md](references/troubleshooting.md) 检查 XML 转义、结构、shell 截断、图片 token、3350001 和布局风险。**
 
@@ -29,7 +29,7 @@ metadata:
 > [!NOTE]
 > `scripts/template_tool.py` 需要 Python 3。`references/template-index.json` 是脚本缓存/轻量路由索引，不是默认给 agent 阅读的文档；`assets/templates/*.xml` 是机器资源，只应通过脚本摘要或裁切，不要全文读取。
 
-**CRITICAL — 使用模板生成或改写页面时，MUST 先 `summarize` 目标页型；只有需要具体布局骨架时才 `extract`。生成本地 XML 后，如可运行 Python，MUST 先用 [`scripts/layout_lint.py`](scripts/layout_lint.py) 检查 XML well-formed、重叠/越界/文本高度风险，再创建或追加页面。它不是完整 XSD schema 校验。**
+**CRITICAL — 使用模板生成或改写页面时，MUST 先 `summarize` 目标页型；只有需要具体布局骨架时才 `extract`。**
 
 **编辑已有幻灯片页面**：优先用 [`+replace-slide`](references/lark-slides-replace-slide.md)（块级替换/插入，不动页序）；选择 action 和完整读-改-写流程见 [`lark-slides-edit-workflows.md`](references/lark-slides-edit-workflows.md)。
 
@@ -98,7 +98,6 @@ lark-cli slides +create --title "演示文稿标题" --slides '[
 | 需要快速筛模板、做低成本路由 | [`scripts/template_tool.py search`](scripts/template_tool.py) |
 | 需要匹配 PPT 模板/主题风格 | [template-catalog.md](references/template-catalog.md) |
 | 需要按页型抽摘要或裁切 XML 片段 | [`scripts/template_tool.py`](scripts/template_tool.py) |
-| 需要做本地布局风险检查 | [`scripts/layout_lint.py`](scripts/layout_lint.py) |
 | 需要 CLI 调用示例 | [examples.md](references/examples.md) |
 | 需要参考真实 PPT 的 XML | [slides_demo.xml](references/slides_demo.xml) |
 | 需要用 table/chart 等复杂元素 | [slides_xml_schema_definition.xml](references/slides_xml_schema_definition.xml)（完整 Schema） |
@@ -128,7 +127,6 @@ lark-cli slides +create --title "演示文稿标题" --slides '[
 python3 skills/lark-slides/scripts/template_tool.py search --query "<用户需求原文>" --limit 3
 python3 skills/lark-slides/scripts/template_tool.py summarize --template <template-id> --label <封面|目录|分节|内容|结尾>
 python3 skills/lark-slides/scripts/template_tool.py extract --template <template-id> --label <页型> --out /tmp/template-slice.xml
-python3 skills/lark-slides/scripts/layout_lint.py --input /tmp/presentation.xml
 ```
 
 ```text
@@ -326,7 +324,6 @@ lark-cli slides <resource> <method> [flags] # 调用 API
 | [template-index.json](references/template-index.json) | **脚本缓存/轻量路由索引：由 `template_tool.py search` 使用，不是默认阅读入口** |
 | [template-catalog.md](references/template-catalog.md) | **按场景/色调匹配现成 PPT 模板，并定位到页型范围** |
 | [`scripts/template_tool.py`](scripts/template_tool.py) | **可选 Python 辅助脚本：`search` / `summarize` / `extract`，支持 `--layout-tag` 与 `extract --with-summary`** |
-| [`scripts/layout_lint.py`](scripts/layout_lint.py) | **本地预检脚本：先检查 XML well-formed，再检测重叠、越界、页脚碰撞、文本高度风险；不是完整 XSD schema 校验** |
 | [planning-layer.md](references/planning-layer.md) | 新建 PPT / 大幅改写前的持久化规划层 |
 | [validation-checklist.md](references/validation-checklist.md) | 创建后 / 大幅改写后的显式验证清单 |
 | [troubleshooting.md](references/troubleshooting.md) | XML 自检、失败排障、错误码和症状修复 |

@@ -14,8 +14,7 @@
 6. 检查页面不是全部退化为标题加 bullet list。
 7. 检查视觉层级：标题、主视觉、支撑信息三者可区分。
 8. 检查明显溢出和布局风险：重叠、越界、底部拥挤、长文本框。
-9. 如果本地有生成 XML 文件，运行 `layout_lint.py`；有 error 先修复再交付。
-10. 在最终回复中给出简短验证记录。
+9. 在最终回复中给出简短验证记录。
 
 回读命令：
 
@@ -23,14 +22,6 @@
 lark-cli slides xml_presentations get --as user \
   --params '{"xml_presentation_id":"YOUR_ID"}'
 ```
-
-本地 XML 风险检查：
-
-```bash
-python3 skills/lark-slides/scripts/layout_lint.py --input presentation.xml
-```
-
-`layout_lint.py` 会检查 XML well-formed、重叠、越界、页脚碰撞和文本高度风险，但不是完整 XSD schema 校验。没有本地 XML 文件时，不要为了运行 lint 重建无关文件；改用回读 XML 做静态检查。
 
 ## Page Count And Structure
 
@@ -75,8 +66,6 @@ python3 skills/lark-slides/scripts/layout_lint.py --input presentation.xml
 - 标题、主视觉、正文的字号和颜色差异太弱，视觉层级不清。
 - 所有内容页都是同一套标题加 bullets 坐标。
 
-若 `layout_lint.py` 报 error，先修复。若只报 warning，判断是否为可接受的背景或装饰重叠；对正文、图片、图表、关键标签的 warning 不要忽略。
-
 ## Verification Record
 
 最终回复必须包含简短验证记录，建议格式：
@@ -87,7 +76,6 @@ python3 skills/lark-slides/scripts/layout_lint.py --input presentation.xml
 - 关键页：架构解释 / Self-Attention / 对比或演进 / 总结页均存在。
 - 结构：检查了主要 shape/img/table/chart 元素，无明显空白页或破损页。
 - 布局：检查了标题层级、主视觉、重叠/越界/文本溢出风险。
-- lint：已运行 layout_lint.py，无 error；或未运行，原因是没有本地 XML 文件。
 ```
 
 不要声称完成了人工视觉验收，除非确实打开或获取了可视化结果。仅从 XML 静态检查得出的结论，应表述为“静态检查未发现明显问题”。

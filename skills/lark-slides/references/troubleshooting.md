@@ -10,13 +10,6 @@
 - 属性引号安全：XML 属性、shell 引号、JSON 字符串包装之间没有互相打断。
 - 结构合法：`<slide>` 下只放 `<style>`、`<data>`、`<note>`，文本都在 `<content>` 内。
 - 图片路径正确：`<img src="@...">` 只在 `+create --slides` 的支持链路中使用；直接调用 `xml_presentation.slide.create` 必须先拿到 `file_token`。
-- 本地 XML 可用时运行 `layout_lint.py --input <file>`；它检查 XML well-formed 和布局风险，不等价于完整 XSD schema 校验。
-
-示例：
-
-```bash
-python3 skills/lark-slides/scripts/layout_lint.py --input presentation.xml
-```
 
 ## Failure Order
 
@@ -34,7 +27,7 @@ python3 skills/lark-slides/scripts/layout_lint.py --input presentation.xml
 | 看到的问题 | 处理方式 |
 |-----------|----------|
 | 文字被截断 / 看不全 | 增大 shape 的 `width` 或 `height`，或减少文本量 |
-| 元素重叠 | 调整 `topLeftX` / `topLeftY`，拉开间距；本地 XML 可用时运行 `layout_lint.py` |
+| 元素重叠 | 调整 `topLeftX` / `topLeftY`，拉开间距 |
 | 页面大面积空白 | 回读确认内容是否写入；若内容存在，再缩小间距或增加主体元素 |
 | 文字和背景色太接近 | 深色背景用浅色文字，浅色背景用深色文字 |
 | 表格列宽不合理 | 调整 `colgroup` 中 `col` 的 `width` 值 |
@@ -58,7 +51,7 @@ python3 skills/lark-slides/scripts/layout_lint.py --input presentation.xml
 | 400 无法删除唯一幻灯片 | 演示文稿至少保留一页 | 先创建新页，再删除旧页 |
 | 1061002 媒体上传 params error | slides 媒体上传参数不符合约定 | 用 `slides +media-upload`，不要手拼原生 `medias/upload_all`；slides 唯一可用 `parent_type` 是 `slide_file` |
 | 1061004 forbidden | 当前身份对演示文稿无编辑权限 | 确认 user/bot 对目标 PPT 有编辑权限；bot 常见于 PPT 非该 bot 创建 |
-| 3350001 | XML 非 well-formed、XML 结构不符合服务端要求，或 replace 片段问题 | 优先检查未转义字符；运行 `layout_lint.py --input <file>`；replace 场景再看 `block_id` 和 `<content/>` |
+| 3350001 | XML 非 well-formed、XML 结构不符合服务端要求，或 replace 片段问题 | 优先检查未转义字符；replace 场景再看 `block_id` 和 `<content/>` |
 | 3350002 | `revision_id` 大于当前版本 | 用 `-1` 取当前版本，或重新读 `xml_presentations.get` 取最新 `revision_id` |
 | validation: unsafe file path | `--file` 给了绝对路径或上层路径 | `--file` 必须是 CWD 内相对路径；先 `cd` 到素材目录再执行 |
 
