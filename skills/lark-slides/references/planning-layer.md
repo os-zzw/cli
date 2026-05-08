@@ -40,6 +40,27 @@ Rules:
   "presentation_goal": "Explain the proposal and secure approval for the next phase.",
   "audience": "Product and engineering leaders who know the domain but need a concise decision narrative.",
   "theme_style": "Clean business style, light background, restrained blue accent, strong visual hierarchy.",
+  "visual_system": {
+    "background_strategy": "Content pages use one light base; cover and closing may use a related dark treatment with the same accent system.",
+    "motif": "A reusable left accent bar and consistent card/header treatments.",
+    "color_roles": {
+      "primary": "Used for the dominant structural motif and about 60-70% of visual weight.",
+      "secondary": "Used for grouped regions, comparison panels, or supporting categories.",
+      "accent": "Used only for key numbers, conclusions, or focus markers."
+    }
+  },
+  "typography_constraints": {
+    "title_max_lines": 2,
+    "body_max_lines_per_box": 2,
+    "footer_max_lines": 1,
+    "long_text_handling": "Shorten, split into multiple boxes, or move detail to speaker notes instead of shrinking into a tight box."
+  },
+  "verification_plan": {
+    "check_background_consistency": true,
+    "check_text_fit": true,
+    "check_visual_focus": true,
+    "check_asset_rendering": true
+  },
   "slides": [
     {
       "page": 1,
@@ -67,6 +88,9 @@ Top-level fields:
 - `presentation_goal`: what the whole deck is trying to achieve.
 - `audience`: target readers or listeners and their assumed background.
 - `theme_style`: visual tone, palette direction, and professional style.
+- `visual_system`: deck-level visual rules that must stay stable across pages, including background strategy, recurring motif, and color roles.
+- `typography_constraints`: deck-level limits for line count, text box density, and how to handle long text before XML generation.
+- `verification_plan`: explicit checks to perform after creation or major edits; include background consistency, text fit, visual focus, and asset rendering when relevant.
 - `slides`: ordered page plans.
 
 Each slide must include:
@@ -107,6 +131,33 @@ The value must affect XML geometry, not just appear as a label. For example, `ti
 
 Do not let all pages become title + bullet slides. For decks of 4 or more pages, aim for at least 4 different `layout_type` values when the content allows it.
 
+Text density must be realistic for the planned geometry. If a page needs long titles, bilingual labels, paper figure captions, legal disclaimers, or dense technical wording, record how the text will be shortened, split, or moved to speaker notes. Do not rely on small font sizes or tight boxes to make text fit.
+
+## Visual System Planning
+
+Before generating XML, define a visual system that can survive the whole deck:
+
+- `background_strategy`: specify the default background for normal content pages, and which page roles may intentionally differ. Do not let pages drift through near-identical but inconsistent background colors.
+- `motif`: choose one or two reusable structural devices, such as a side bar, header rail, numbered node, card treatment, diagram lane, or section band. The motif should appear consistently enough that pages feel related.
+- `color_roles`: assign primary, secondary, and accent roles. The same color must not mean unrelated things across pages.
+- `cover_content_relationship`: if the cover uses a different dark or image-led treatment, state how it connects to content pages through shared colors, motifs, or geometry.
+- `closing_relationship`: if the closing page mirrors the cover, state that explicitly so it looks intentional rather than like a new theme.
+
+These are planning constraints, not decoration notes. They must affect coordinates, background fills, shape styles, and text placement in generated XML.
+
+## Iterative Deck State
+
+When continuing an existing deck, update the same plan path rather than creating a new disconnected plan. Keep the plan aligned with what has actually been created.
+
+Recommended optional fields for long-running work:
+
+- `deck_status`: current slide count, target slide count if known, and last verified revision or timestamp.
+- `created_slides`: page number, slide id when known, and the page role.
+- `assets_used`: source, local path when applicable, uploaded token when known, and which page uses it.
+- `open_issues`: known layout, text fit, asset, or consistency risks that still need correction.
+
+Do not hard-code a page number just because a previous deck used that pattern. Plan by page role and evidence need, such as "method overview pages should use a figure when the source has a readable figure" instead of binding screenshots, charts, or diagrams to a fixed page index. The plan should describe decision rules, not a rigid template sequence.
+
 ## Asset Planning
 
 `asset_need` is metadata. It can describe a desired figure, diagram, chart, icon, logo, screenshot, or fallback shape-based visual, but it must not require web search, local download, or media upload.
@@ -142,6 +193,9 @@ After creating the PPT, fetch the presentation and verify:
 - Every page has the planned title and key message represented.
 - At least several pages have visibly different XML layout structures.
 - Planned `visual_focus` appears as a dominant visual region or object.
-- At least 3 pages actively plan `asset_need` when the deck topic allows, and each planned asset has a visible fallback if no real asset was used.
+- Asset planning is proportional to the deck topic and length: technical, research, product, and analytical decks should include meaningful planned visuals where they clarify the story, and each planned asset has a visible fallback if no real asset was used.
 - `text_density` is reflected in the amount of visible text.
 - Pages are not crowded, and any planned `timeline`, `comparison`, or `architecture-diagram` page uses its matching visual structure.
+- The actual backgrounds match `visual_system.background_strategy`; any dark, image-led, or emphasis page has an intentional relationship to the rest of the deck.
+- Text boxes respect `typography_constraints`; long labels, captions, footer text, and conclusion bars are not squeezed into boxes that are too short for the intended line count.
+- If real assets are used, the final XML contains renderable asset tokens or supported local placeholders for creation, not http URLs, stale local paths, or blank image boxes.
