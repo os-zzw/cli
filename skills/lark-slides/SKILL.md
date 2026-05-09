@@ -10,6 +10,18 @@ metadata:
 
 # slides (v1)
 
+## Quick Reference
+
+| 用户需求 | 优先动作 | 关键文档 / 命令 |
+|----------|----------|-----------------|
+| 新建 PPT | 先规划 `slide_plan.json`，再按复杂度选择一步或两步创建 | `planning-layer.md`、`visual-planning.md`、`asset-planning.md`、`slides +create` |
+| 大幅改写页面 | 先回读现有 XML，写入新 plan，再替换或重建相关页面 | `xml_presentations.get`、`+replace-slide`、`lark-slides-edit-workflows.md` |
+| 编辑单个标题、文本块、图片或局部元素 | 优先块级替换/插入，不改页序 | `slides +replace-slide`、`lark-slides-replace-slide.md` |
+| 读取或分析已有 PPT | 解析 slides/wiki token，回读全文或单页 XML，保存 `xml_presentation_id`、`slide_id`、`revision_id` | `xml_presentations.get`、`xml_presentation.slide.get` |
+| 上传或使用图片 | 先上传为 `file_token`，禁止直接写 http(s) 外链 | `slides +media-upload`，或 `+create --slides` 的 `@./path` 占位符 |
+| 用户提到模板、主题、版式 | 先检索模板，再摘要，必要时裁切骨架 | `template_tool.py search → summarize → extract` |
+| 创建失败、空白页、3350001、布局异常 | 先回读状态，再按排障清单修复，不假设原操作原子成功 | `troubleshooting.md`、`validation-checklist.md` |
+
 **CRITICAL — 开始前 MUST 先用 Read 工具读取 [`../lark-shared/SKILL.md`](../lark-shared/SKILL.md)，其中包含认证、权限处理**
 
 **CRITICAL — 生成任何 XML 之前，MUST 先用 Read 工具读取 [xml-schema-quick-ref.md](references/xml-schema-quick-ref.md)，禁止凭记忆猜测 XML 结构。**
@@ -51,62 +63,68 @@ lark-cli auth login --domain slides
 2. 如果出现权限不足，先检查当前是否误用了 bot 身份；不要默认回退到 bot。
 3. 只有在用户明确要求"用应用身份 / bot 身份操作"，或当前工作流就是 bot 创建资源后再做协作授权时，才切换到 `--as bot`。
 
-## 快速开始
-
-一条命令创建包含页面内容的 PPT（推荐）：
-
-```bash
-lark-cli slides +create --title "演示文稿标题" --slides '[
-  "<slide xmlns=\"http://www.larkoffice.com/sml/2.0\"><style><fill><fillColor color=\"rgb(245,245,245)\"/></fill></style><data><shape type=\"text\" topLeftX=\"80\" topLeftY=\"80\" width=\"800\" height=\"100\"><content textType=\"title\"><p>页面标题</p></content></shape><shape type=\"text\" topLeftX=\"80\" topLeftY=\"200\" width=\"800\" height=\"200\"><content textType=\"body\"><p>正文内容</p><ul><li><p>要点一</p></li><li><p>要点二</p></li></ul></content></shape></data></slide>"
-]'
-```
-
-也可以分两步（先创建空白 PPT，再逐页添加），详见 [+create 参考文档](references/lark-slides-create.md)。
-
-> [!WARNING]
-> `--slides '[...]'` 适合简单页面批量创建，但并不等同于“10 页以内都安全”。如果 slide XML 含中文、大段文本、复杂布局、嵌套引号或较多特殊字符，shell 传参时可能出现转义或截断问题，导致内容丢失、页面空白或布局异常。遇到复杂页面时，优先改用“两步创建法”。
-
-> [!IMPORTANT]
-> `slides +create --slides` 底层是“先创建空白 PPT，再逐页调用 `xml_presentation.slide.create`”。这不是原子操作；中途某一页失败时，前面已创建成功的页面会保留。skill 必须把这种“部分成功”风险提前告诉用户，并在失败后先记录 `xml_presentation_id`，回读确认当前状态，再决定是否在现有 PPT 上继续修复或追加。
-
-> 以上是最小可用示例。更丰富的页面效果（渐变背景、卡片、图表、表格等），参考下方 Workflow 和 XML 模板。
-
 ## 执行前必做
 
 > **重要**：`references/slides_xml_schema_definition.xml` 是此 skill 唯一正确的 XML 协议来源；其他 md 仅是对它和 CLI schema 的摘要。
 
-### 必读（每次创建前）
+高频只读：
 
-| 文档 | 说明 |
-|------|------|
-| [xml-schema-quick-ref.md](references/xml-schema-quick-ref.md) | **XML 元素和属性速查，必读** |
-| [planning-layer.md](references/planning-layer.md) | **新建 PPT / 大幅改写前的持久化规划层，必读** |
-| [visual-planning.md](references/visual-planning.md) | **新建 PPT / 大幅改写时的版式智能规则，必读** |
-| [asset-planning.md](references/asset-planning.md) | **新建 PPT / 大幅改写时的轻量资产规划规则，必读** |
-| [validation-checklist.md](references/validation-checklist.md) | **创建后 / 大幅改写后的显式验证清单，必读** |
+- [xml-schema-quick-ref.md](references/xml-schema-quick-ref.md)
+- [planning-layer.md](references/planning-layer.md)（新建 / 大幅改写）
+- [visual-planning.md](references/visual-planning.md)（新建 / 大幅改写）
+- [asset-planning.md](references/asset-planning.md)（新建 / 大幅改写）
+- [validation-checklist.md](references/validation-checklist.md)（创建 / 大幅改写后）
 
-### 选读（需要时查阅）
+按需再读：
 
-| 场景 | 文档 |
-|------|------|
-| 需要了解详细 XML 结构 | [xml-format-guide.md](references/xml-format-guide.md) |
-| 需要新建 PPT 或大幅改写页面 | [planning-layer.md](references/planning-layer.md) |
-| 需要把 plan 转成有差异的页面版式 | [visual-planning.md](references/visual-planning.md) |
-| 需要规划图、图标、截图、图表或兜底视觉 | [asset-planning.md](references/asset-planning.md) |
-| 需要创建后验收或交付验证记录 | [validation-checklist.md](references/validation-checklist.md) |
-| 需要 XML 自检、失败排障、错误码处理 | [troubleshooting.md](references/troubleshooting.md) |
-| 需要快速筛模板、做低成本路由 | [`scripts/template_tool.py search`](scripts/template_tool.py) |
-| 需要匹配 PPT 模板/主题风格 | [template-catalog.md](references/template-catalog.md) |
-| 需要按页型抽摘要或裁切 XML 片段 | [`scripts/template_tool.py`](scripts/template_tool.py) |
-| 需要 CLI 调用示例 | [examples.md](references/examples.md) |
-| 需要参考真实 PPT 的 XML | [slides_demo.xml](references/slides_demo.xml) |
-| 需要用 table/chart 等复杂元素 | [slides_xml_schema_definition.xml](references/slides_xml_schema_definition.xml)（完整 Schema） |
-| 需要编辑已有 PPT 的单个页面 | [lark-slides-edit-workflows.md](references/lark-slides-edit-workflows.md) |
-| 需要了解某个命令的详细参数 | 对应命令的 reference 文档（见下方参考文档章节） |
+- 创建：[`lark-slides-create.md`](references/lark-slides-create.md)
+- 编辑：[`lark-slides-edit-workflows.md`](references/lark-slides-edit-workflows.md)、[`lark-slides-replace-slide.md`](references/lark-slides-replace-slide.md)
+- 图片：[`lark-slides-media-upload.md`](references/lark-slides-media-upload.md)
+- 模板：[`template-catalog.md`](references/template-catalog.md)、[`scripts/template_tool.py`](scripts/template_tool.py)
+- 排障：[`troubleshooting.md`](references/troubleshooting.md)
+- 完整协议：[`slides_xml_schema_definition.xml`](references/slides_xml_schema_definition.xml)
 
 ## Workflow
 
 > **这是演示文稿，不是文档。** 每页 slide 是独立的视觉画面，信息密度要低，排版要留白。
+
+### Design Ideas
+
+不要生成无设计感的幻灯片。纯白背景 + 标题 + bullets 只能作为极简临时稿，不能作为正式交付。
+
+开始写 XML 前，先在 `slide_plan.json` 里确定 deck 级视觉策略：
+
+- **主题化配色**：配色必须服务本次主题、行业和受众，不要默认蓝色商务风。如果把同一套颜色换到另一个完全不同主题仍然成立，说明配色不够具体。
+- **主次比例**：选择 1 个主色承担约 60-70% 视觉权重，1-2 个辅助色承担结构和分区，1 个强调色只用于关键数字、结论或行动点。不要让所有颜色权重相同。
+- **背景一致性**：先确定全 deck 的背景策略，默认保持同一明暗基调和底色体系；只有分节、转场或强调页才有意改变背景，并必须通过相同主色、纹理、边栏或 motif 让变化看起来属于同一套设计。无论深浅，都要保证正文、图标和线条对比充足。
+- **统一 motif**：选择一个可复用视觉母题贯穿全文，例如粗侧边栏、圆形图标底、半出血图片区、编号节点、卡片左上角色块或大号数字。不要每页换一套装饰语言。
+
+每页至少要有一个视觉元素：图片、图标、图表、表格、流程、对比结构、大号数字、示意图或由 shape 组成的抽象视觉。文本框本身不算主视觉。
+
+可优先考虑这些页面形态：
+
+- **双栏结构**：左文右图或左图右文，视觉区域占 35-45% 宽度。
+- **图标行**：图标在色块或圆形底中，右侧是短标题和一句解释。
+- **2x2 / 2x3 网格**：适合能力、模块、风险、行动项，每格内容保持同等层级。
+- **半出血视觉**：图片或抽象形状占据左/右半屏，文字覆盖或贴边排布。
+- **大数字卡片**：关键指标用 60-72pt 数字，下面配 10-14pt 标签。
+- **对比列**：before/after、方案 A/B、问题/解法用左右并列，标题和基线严格对齐。
+- **时间线/流程图**：步骤用节点和箭头表达，流程方向必须一眼可见。
+
+字体和间距建议：
+
+- 标题 36-44pt，关键结论可更大；正文 14-18pt；注释 10-12pt。
+- 正文默认左对齐；只在封面、结尾或大号数字场景中使用居中。
+- 页面边距至少 40px；内容块之间保持 24-40px 间距，并在同一 deck 内保持一致。
+- 卡片内边距要真实留出空间，不要让文字贴边；对齐 shape 和文字时要考虑文本框 padding。
+
+常见错误必须避免：
+
+- 不要所有页面复用同一种标题 + 三 bullets 版式。
+- 不要用低对比文字或低对比图标，例如浅灰字压在浅色背景上。
+- 不要让装饰线穿过文字，或让页脚、来源、编号挤压主体内容。
+- 不要把素材缺失表现为空白图片框；必须按 `fallback_if_missing` 生成 XML-native 视觉。
+- 不要留下模板占位文案、示例公司名、示例日期或与用户主题无关的原模板内容。
 
 ### 创建方式选择
 
@@ -118,6 +136,9 @@ lark-cli slides +create --title "演示文稿标题" --slides '[
 
 > [!WARNING]
 > `--slides '[...]'` 的风险点主要在 shell 参数传递，而不是单纯页数。即使只有 1 页，只要 XML 足够复杂，也建议使用两步创建法。
+
+> [!IMPORTANT]
+> `slides +create --slides` 底层会逐页创建，不是原子操作。中途失败时先记录 `xml_presentation_id`，回读确认当前状态，再继续修复或追加。
 
 ### 模板与脚本优先流程
 
@@ -175,29 +196,7 @@ lark-cli slides xml_presentation.slide create \
     '{slide:{content:$content}, before_slide_id:$before}')"
 ```
 
-### 风格快速判断表
-
-> **注意**：渐变色必须使用 `rgba()` 格式并带百分比停靠点，如 `linear-gradient(135deg,rgba(15,23,42,1) 0%,rgba(56,97,140,1) 100%)`。使用 `rgb()` 或省略停靠点会导致服务端回退为白色。
-
-| 场景/主题 | 推荐风格 | 背景 | 主色 | 文字色 |
-|----------|---------|------|------|-------|
-| 科技/AI/产品 | 深色科技风 | 深蓝渐变 `linear-gradient(135deg,rgba(15,23,42,1) 0%,rgba(56,97,140,1) 100%)` | 蓝色系 `rgb(59,130,246)` | 白色 |
-| 商务汇报/季度总结 | 浅色商务风 | 浅灰 `rgb(248,250,252)` | 深蓝 `rgb(30,60,114)` | 深灰 `rgb(30,41,59)` |
-| 教育/培训 | 清新明亮风 | 白色 `rgb(255,255,255)` | 绿色系 `rgb(34,197,94)` | 深灰 `rgb(51,65,85)` |
-| 创意/设计 | 渐变活力风 | 紫粉渐变 `linear-gradient(135deg,rgba(88,28,135,1) 0%,rgba(190,24,93,1) 100%)` | 粉紫色系 | 白色 |
-| 周报/日常汇报 | 简约专业风 | 浅灰 `rgb(248,250,252)` + 顶部彩色渐变条 | 蓝色 `rgb(59,130,246)` | 深色 `rgb(15,23,42)` |
-| 用户未指定 | 默认简约专业风 | 同上 | 同上 | 同上 |
-
-### 页面布局建议
-
-| 页面类型 | 布局要点 |
-|---------|---------|
-| 封面页 | 居中大标题 + 副标题 + 底部信息，背景用渐变或深色 |
-| 数据概览页 | 指标卡片横排（rect 背景 + 大号数字 + 小号说明），下方列表或图表 |
-| 内容页 | 左侧竖线装饰 + 标题，下方分栏或列表 |
-| 对比/表格页 | table 元素或并列卡片，表头深色背景白字 |
-| 图表页 | chart 元素（column/line/pie），配合文字说明 |
-| 结尾页 | 居中感谢语 + 装饰线，风格与封面呼应 |
+> 渐变色必须使用 `rgba()` 格式并带百分比停靠点，如 `linear-gradient(135deg,rgba(15,23,42,1) 0%,rgba(56,97,140,1) 100%)`。使用 `rgb()` 或省略停靠点会导致服务端回退为白色。
 
 ### 大纲模板
 
@@ -217,12 +216,6 @@ N. 结尾页：[结尾文案]
 
 风格：[配色方案]，[排版风格]
 ```
-
-### 常用 Slide XML 模板
-
-可直接复制使用的模板（封面页、内容页、数据卡片页、结尾页）：[slide-templates.md](references/slide-templates.md)
-
----
 
 ## 核心概念
 
@@ -259,35 +252,22 @@ Slides (演示文稿)
     └── slide_id (页面唯一标识)
 ```
 
-## Shortcuts（推荐优先使用）
+## Shortcuts 与 API
 
 Shortcut 是对常用操作的高级封装（`lark-cli slides +<verb> [flags]`）。有 Shortcut 的操作优先使用。
 
 | Shortcut | 说明 |
 |----------|------|
-| [`+create`](references/lark-slides-create.md) | 创建 PPT（可选 `--slides` 一步添加页面，支持 `<img src="@./local.png">` 占位符自动上传），bot 模式自动授权 |
+| [`+create`](references/lark-slides-create.md) | 创建 PPT（可选 `--slides` 一步添加页面，支持 `<img src="@./local.png">` 占位符自动上传） |
 | [`+media-upload`](references/lark-slides-media-upload.md) | 上传本地图片到指定演示文稿，返回 `file_token`（用作 `<img src="...">`），最大 20 MB |
 | [`+replace-slide`](references/lark-slides-replace-slide.md) | 对已有幻灯片页面进行块级替换/插入（`block_replace` / `block_insert`），自动注入 id 和 `<content/>`，不改变页序 |
-
-## API Resources
 
 ```bash
 lark-cli schema slides.<resource>.<method>   # 调用 API 前必须先查看参数结构
 lark-cli slides <resource> <method> [flags] # 调用 API
 ```
 
-> **重要**：使用原生 API 时，必须先运行 `schema` 查看 `--data` / `--params` 参数结构，不要猜测字段格式。
-
-### xml_presentations
-
-  - `get` — 读取演示文稿全文信息，XML 格式返回
-
-### xml_presentation.slide
-
-  - `create` — 在指定 XML 演示文稿下创建页面
-  - `delete` — 在指定 XML 演示文稿下删除页面
-  - `get` — 获取指定 XML 演示文稿的单个页面 XML 内容
-  - `replace` — 对指定 XML 演示文稿页面进行元素级别的局部替换
+原生 API 高频资源：`xml_presentations.get` 读取全文；`xml_presentation.slide.create/delete/get/replace` 管理单页。使用原生 API 时，必须先运行 `schema` 查看 `--data` / `--params` 参数结构，不要猜字段。
 
 ## 核心规则
 
@@ -300,7 +280,7 @@ lark-cli slides <resource> <method> [flags] # 调用 API
 7. **编辑已有页面优先块级替换**：修改单个 shape/img 用 `+replace-slide`（`block_replace` / `block_insert`），不要整页重建；只有需要替换整页结构时才用 `slide.delete` + `slide.create`
 8. **`<img src>` 只能用上传到飞书 drive 的 `file_token`，禁止使用 http(s) 外链 URL**：飞书 slides 渲染端不会代理外链图片，外链 src 在 PPT 里通常不显示或显示破图。流程必须是「先把图存到本地 → 用 `slides +media-upload` 上传或 `+create --slides` 的 `@./path` 占位符自动上传 → 拿 `file_token` 写进 `<img src>`」。如果用户给了网图链接，先 `curl`/下载到 CWD 内再走上传流程，不要直接把外链 URL 塞进 `src`。**图片最大 20 MB**（slides upload API 不支持分片上传）。
 
-## 权限表
+## 权限速查
 
 | 方法 | 所需 scope |
 |------|-----------|
@@ -312,31 +292,5 @@ lark-cli slides <resource> <method> [flags] # 调用 API
 | `xml_presentation.slide.delete` | `slides:presentation:update` 或 `slides:presentation:write_only` |
 | `xml_presentation.slide.get` | `slides:presentation:read` |
 | `xml_presentation.slide.replace` | `slides:presentation:update` |
-
-## 参考文档
-
-| 文档 | 说明 |
-|------|------|
-| [lark-slides-create.md](references/lark-slides-create.md) | **+create Shortcut：创建 PPT（支持 `--slides` 一步添加页面，含 `@` 占位符自动上传图片）** |
-| [lark-slides-media-upload.md](references/lark-slides-media-upload.md) | **+media-upload Shortcut：上传本地图片，返回 `file_token`** |
-| [lark-slides-replace-slide.md](references/lark-slides-replace-slide.md) | **+replace-slide Shortcut：块级替换/插入，含合法根元素速查与 3350001 排错** |
-| [lark-slides-edit-workflows.md](references/lark-slides-edit-workflows.md) | 编辑已有页面的读-改-写流程与 action 决策树 |
-| [template-index.json](references/template-index.json) | **脚本缓存/轻量路由索引：由 `template_tool.py search` 使用，不是默认阅读入口** |
-| [template-catalog.md](references/template-catalog.md) | **按场景/色调匹配现成 PPT 模板，并定位到页型范围** |
-| [`scripts/template_tool.py`](scripts/template_tool.py) | **可选 Python 辅助脚本：`search` / `summarize` / `extract`，支持 `--layout-tag` 与 `extract --with-summary`** |
-| [planning-layer.md](references/planning-layer.md) | 新建 PPT / 大幅改写前的持久化规划层 |
-| [validation-checklist.md](references/validation-checklist.md) | 创建后 / 大幅改写后的显式验证清单 |
-| [troubleshooting.md](references/troubleshooting.md) | XML 自检、失败排障、错误码和症状修复 |
-| [xml-schema-quick-ref.md](references/xml-schema-quick-ref.md) | **XML Schema 精简速查（必读）** |
-| [slide-templates.md](references/slide-templates.md) | 可复制的 Slide XML 模板 |
-| [xml-format-guide.md](references/xml-format-guide.md) | XML 详细结构与示例 |
-| [examples.md](references/examples.md) | CLI 调用示例 |
-| [slides_demo.xml](references/slides_demo.xml) | 真实 PPT 的完整 XML |
-| [slides_xml_schema_definition.xml](references/slides_xml_schema_definition.xml) | **完整 Schema 定义**（唯一协议依据） |
-| [lark-slides-xml-presentations-get.md](references/lark-slides-xml-presentations-get.md) | 读取 PPT 命令详情 |
-| [lark-slides-xml-presentation-slide-create.md](references/lark-slides-xml-presentation-slide-create.md) | 添加幻灯片命令详情 |
-| [lark-slides-xml-presentation-slide-delete.md](references/lark-slides-xml-presentation-slide-delete.md) | 删除幻灯片命令详情 |
-| [lark-slides-xml-presentation-slide-get.md](references/lark-slides-xml-presentation-slide-get.md) | 读取单个幻灯片命令详情 |
-| [lark-slides-xml-presentation-slide-replace.md](references/lark-slides-xml-presentation-slide-replace.md) | 原生 slide.replace API 命令详情 |
 
 > **注意**：如果 md 内容与 `slides_xml_schema_definition.xml` 或 `lark-cli schema slides.<resource>.<method>` 输出不一致，以后两者为准。
