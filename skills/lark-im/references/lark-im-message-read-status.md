@@ -7,7 +7,7 @@ Use two focused shortcuts for message read-status queries:
 - `im +messages-read-status` queries whether the current user has read 1–50 messages.
 - `im +message-read-users` lists users who have read one message and supports automatic pagination.
 
-Both underlying OpenAPIs are available in UAT.
+Both underlying OpenAPIs support user identity through a user access token (UAT). `+message-read-users` additionally supports bot identity through a tenant access token (TAT).
 
 ## Identity and scopes
 
@@ -28,7 +28,7 @@ lark-cli im +messages-read-status \
   --as user \
   --dry-run
 
-# Execute in UAT or an environment routed to UAT
+# Execute with a user access token
 lark-cli im +messages-read-status \
   --message-ids om_xxx,om_yyy \
   --as user \
