@@ -171,7 +171,7 @@ lark-cli im <resource> <method> [flags] # 调用 API
 
 ### messages
 
-  - `batch_get_read_status` — 批量查询当前用户对消息的阅读状态。Identity: `user` only (`user_access_token`); accepts up to 50 visible message IDs. `unexpected` is indeterminate and must not be treated as unread.[Must-read](references/lark-im-message-read-status.md)
+  - `read_status` — 批量查询当前用户对消息的阅读状态。Identity: `user` only (`user_access_token`); accepts up to 50 visible message IDs. `unexpected` is indeterminate and must not be treated as unread.[Must-read](references/lark-im-message-read-status.md)
   - `delete` — 撤回消息。Identity: supports `user` and `bot`; for `bot` calls, the bot must be in the chat to revoke group messages; to revoke another user's group message, the bot must be the owner, an admin, or the creator; for user P2P recalls, the target user must be within the bot's availability.
   - `forward` — 转发消息。Identity: supports `user` and `bot`.
   - `merge_forward` — 合并转发消息。Identity: `bot` only (`tenant_access_token`).
@@ -228,9 +228,9 @@ lark-cli im <resource> <method> [flags] # 调用 API
 | `chat.managers.delete_managers` | `im:chat.managers:write_only` |
 | `chat.moderation.get` | `im:chat.moderation:read` |
 | `chat.moderation.update` | `im:chat:moderation:write_only` |
-| `+messages-read-status` | user: `im:message.read_status:readonly` |
+| `+messages-read-status` | user: `im:message:get_as_user` |
 | `+message-read-users` | user: `im:message:get_as_user`; bot: `im:message:readonly` |
-| `messages.batch_get_read_status` | `im:message.read_status:readonly` |
+| `messages.read_status` | `im:message:get_as_user` |
 | `messages.delete` | `im:message:recall` |
 | `messages.forward` | `im:message` |
 | `messages.merge_forward` | `im:message` |

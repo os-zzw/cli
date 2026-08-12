@@ -31,10 +31,10 @@ func TestNormalizeAllowlistedUserScopeErrorRemovesOAuthRecovery(t *testing.T) {
 	source := errs.NewPermissionError(errs.SubtypeMissingScope, "missing allowlisted scope").
 		WithCode(99991679).
 		WithLogID("log-id").
-		WithMissingScopes("im:message.read_status:readonly").
+		WithMissingScopes("im:message:get_as_user").
 		WithHint("run auth login")
 
-	got := normalizeAllowlistedUserScopeError(source, core.AsUser, "im:message.read_status:readonly")
+	got := normalizeAllowlistedUserScopeError(source, core.AsUser, "im:message:get_as_user")
 	var permissionErr *errs.PermissionError
 	if !errors.As(got, &permissionErr) {
 		t.Fatalf("errors.As() = false, err = %v", got)

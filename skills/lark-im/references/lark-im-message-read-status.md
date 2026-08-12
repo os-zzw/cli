@@ -13,7 +13,7 @@ Both underlying OpenAPIs support user identity through a user access token (UAT)
 
 | Shortcut | Identity | Scope |
 |---|---|---|
-| `+messages-read-status` | user only | `im:message.read_status:readonly` |
+| `+messages-read-status` | user only | `im:message:get_as_user` |
 | `+message-read-users` | user | `im:message:get_as_user` |
 | `+message-read-users` | bot | `im:message:readonly` |
 
@@ -75,7 +75,7 @@ The command preserves each server item, including `user_id_type`, `user_id`, `ti
 When Registry MR !128 is published, the corresponding raw commands remain available:
 
 ```bash
-lark-cli im messages batch_get_read_status --data '{"message_ids":["om_xxx"]}' --as user
+lark-cli im messages read_status --data '{"message_ids":["om_xxx"]}' --as user
 lark-cli im messages read_users --params '{"message_id":"om_xxx","user_id_type":"open_id"}' --as user
 ```
 
@@ -86,7 +86,6 @@ Prefer the shortcuts for flag validation, identity-specific scope hints, and rea
 | Symptom | Meaning | Action |
 |---|---|---|
 | `--as bot is not supported` for read status | The batch endpoint requires user identity | Switch to `--as user` |
-| Missing `im:message.read_status:readonly` | The allowlisted high-sensitivity scope has not taken effect for this app | Verify the app ID and publication state in the Scope platform; do not request it through OAuth |
 | Missing `im:message:get_as_user` | The allowlisted high-sensitivity scope has not taken effect for this app | Verify the app ID and publication state in the Scope platform; do not request it through OAuth |
 | Bot permission denied | The application lacks a bot scope | Open the `console_url` from the typed error and enable the requested scope |
 | Empty read-user list | No user has read the message, or sender/time constraints are not met | Verify the message sender and seven-day window |

@@ -42,7 +42,7 @@ var ImMessagesReadStatus = common.Shortcut{
 		}
 		data, err := runtime.CallAPITyped(http.MethodPost, "/open-apis/im/v1/messages/batch_query_read_status", nil, body)
 		if err != nil {
-			return normalizeAllowlistedUserScopeError(err, runtime.As(), "im:message.read_status:readonly")
+			return normalizeAllowlistedUserScopeError(err, runtime.As(), "im:message:get_as_user")
 		}
 		runtime.OutFormat(data, nil, nil)
 		return nil
