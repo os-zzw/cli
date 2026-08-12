@@ -4,12 +4,14 @@
 package im
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
 	"strings"
 	"testing"
 
 	"github.com/larksuite/cli/errs"
+	"github.com/larksuite/cli/internal/core"
 	"github.com/larksuite/cli/shortcuts/common"
 	"github.com/spf13/cobra"
 )
@@ -23,6 +25,37 @@ func newMessagesReadStatusTestRuntime(t *testing.T, messageIDs string) *common.R
 		t.Fatalf("Flags().Set() error = %v", err)
 	}
 	return &common.RuntimeContext{Cmd: cmd}
+}
+
+func TestNormalizeAllowlistedUserScopeErrorRemovesOAuthRecovery(t *testing.T) {
+	source := errs.NewPermissionError(errs.SubtypeMissingScope, "missing allowlisted scope").
+		WithCode(99991679).
+		WithLogID("log-id").
+		WithMissingScopes("im:message.read_status:readonly").
+		WithHint("run auth login")
+
+	got := normalizeAllowlistedUserScopeError(source, core.AsUser, "im:message.read_status:readonly")
+	var permissionErr *errs.PermissionError
+	if !errors.As(got, &permissionErr) {
+		t.Fatalf("errors.As() = false, err = %v", got)
+	}
+	if len(permissionErr.MissingScopes) != 0 {
+		t.Fatalf("MissingScopes = %v, want none", permissionErr.MissingScopes)
+	}
+	if strings.Contains(permissionErr.Hint, "auth login") || !strings.Contains(permissionErr.Hint, "Scope platform") {
+		t.Fatalf("Hint = %q", permissionErr.Hint)
+	}
+	if permissionErr.Code != 99991679 || permissionErr.LogID != "log-id" {
+		t.Fatalf("server evidence was not preserved: %#v", permissionErr)
+	}
+}
+
+func TestNormalizeAllowlistedUserScopeErrorLeavesBotErrorUnchanged(t *testing.T) {
+	source := errs.NewPermissionError(errs.SubtypeMissingScope, "missing bot scope").WithHint("open console")
+	got := normalizeAllowlistedUserScopeError(source, core.AsBot, "im:message:get_as_user")
+	if got != source || source.Hint != "open console" {
+		t.Fatalf("bot error changed: %#v", source)
+	}
 }
 
 func TestBuildMessagesReadStatusBody(t *testing.T) {
@@ -69,8 +102,11 @@ func TestMessagesReadStatusShortcutContract(t *testing.T) {
 	if !reflect.DeepEqual(ImMessagesReadStatus.AuthTypes, []string{"user"}) {
 		t.Fatalf("AuthTypes = %v, want [user]", ImMessagesReadStatus.AuthTypes)
 	}
-	if !reflect.DeepEqual(ImMessagesReadStatus.Scopes, []string{"im:message.read_status:readonly"}) {
-		t.Fatalf("Scopes = %v", ImMessagesReadStatus.Scopes)
+	if got := ImMessagesReadStatus.ScopesForIdentity("user"); len(got) != 0 {
+		t.Fatalf("user preflight scopes = %v, want none for allowlisted scope", got)
+	}
+	if got := ImMessagesReadStatus.DeclaredScopesForIdentity("user"); len(got) != 0 {
+		t.Fatalf("declared user scopes = %v, want none to avoid OAuth recovery for allowlisted scope", got)
 	}
 	if ImMessagesReadStatus.Risk != "read" {
 		t.Fatalf("Risk = %q, want read", ImMessagesReadStatus.Risk)

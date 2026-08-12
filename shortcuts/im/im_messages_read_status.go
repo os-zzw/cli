@@ -18,8 +18,10 @@ var ImMessagesReadStatus = common.Shortcut{
 	Command:     "+messages-read-status",
 	Description: "Batch query whether the current user has read up to 50 messages; preserves read, unread, and unexpected statuses",
 	Risk:        "read",
-	Scopes:      []string{"im:message.read_status:readonly"},
-	AuthTypes:   []string{"user"},
+	// 高敏权限由 Scope 平台白名单校验，不会出现在 UAT 的 scope 字段中，
+	// 因此不能参与本地 OAuth scope 预检或生成重新授权提示。
+	Scopes:    []string{},
+	AuthTypes: []string{"user"},
 	Flags: []common.Flag{
 		{Name: "message-ids", Aliases: []string{"message-id"}, Required: true, Desc: "message IDs, comma-separated (1-50 om_xxx IDs)"},
 	},
@@ -40,7 +42,7 @@ var ImMessagesReadStatus = common.Shortcut{
 		}
 		data, err := runtime.CallAPITyped(http.MethodPost, "/open-apis/im/v1/messages/batch_query_read_status", nil, body)
 		if err != nil {
-			return err
+			return normalizeAllowlistedUserScopeError(err, runtime.As(), "im:message.read_status:readonly")
 		}
 		runtime.OutFormat(data, nil, nil)
 		return nil

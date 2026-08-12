@@ -47,8 +47,11 @@ func newMessageReadUsersTestRuntime(t *testing.T, transport http.RoundTripper, s
 }
 
 func TestMessageReadUsersScopesByIdentity(t *testing.T) {
-	if !reflect.DeepEqual(ImMessageReadUsers.ScopesForIdentity("user"), []string{"im:message:get_as_user"}) {
-		t.Fatalf("user scopes = %v", ImMessageReadUsers.ScopesForIdentity("user"))
+	if got := ImMessageReadUsers.ScopesForIdentity("user"); len(got) != 0 {
+		t.Fatalf("user preflight scopes = %v, want none for allowlisted scope", got)
+	}
+	if got := ImMessageReadUsers.DeclaredScopesForIdentity("user"); len(got) != 0 {
+		t.Fatalf("declared user scopes = %v, want none to avoid OAuth recovery for allowlisted scope", got)
 	}
 	if !reflect.DeepEqual(ImMessageReadUsers.ScopesForIdentity("bot"), []string{"im:message:readonly"}) {
 		t.Fatalf("bot scopes = %v", ImMessageReadUsers.ScopesForIdentity("bot"))

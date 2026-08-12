@@ -86,8 +86,8 @@ Prefer the shortcuts for flag validation, identity-specific scope hints, and rea
 | Symptom | Meaning | Action |
 |---|---|---|
 | `--as bot is not supported` for read status | The batch endpoint requires user identity | Switch to `--as user` |
-| Missing `im:message.read_status:readonly` | User authorization is incomplete | Run `lark-cli auth login --scope "im:message.read_status:readonly"` |
-| Missing `im:message:get_as_user` | User read-users authorization is incomplete | Run `lark-cli auth login --scope "im:message:get_as_user"` |
+| Missing `im:message.read_status:readonly` | The allowlisted high-sensitivity scope has not taken effect for this app | Verify the app ID and publication state in the Scope platform; do not request it through OAuth |
+| Missing `im:message:get_as_user` | The allowlisted high-sensitivity scope has not taken effect for this app | Verify the app ID and publication state in the Scope platform; do not request it through OAuth |
 | Bot permission denied | The application lacks a bot scope | Open the `console_url` from the typed error and enable the requested scope |
 | Empty read-user list | No user has read the message, or sender/time constraints are not met | Verify the message sender and seven-day window |
 

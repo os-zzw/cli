@@ -26,9 +26,11 @@ var ImMessageReadUsers = common.Shortcut{
 	Command:     "+message-read-users",
 	Description: "List users who have read one message; supports user and bot identities with optional automatic pagination",
 	Risk:        "read",
-	UserScopes:  []string{"im:message:get_as_user"},
-	BotScopes:   []string{"im:message:readonly"},
-	AuthTypes:   []string{"user", "bot"},
+	// 用户侧高敏权限由 Scope 平台白名单校验，不会出现在 UAT 的 scope 字段中，
+	// 因此仅保留 Bot 普通 OAuth scope 的本地预检。
+	Scopes:    []string{},
+	BotScopes: []string{"im:message:readonly"},
+	AuthTypes: []string{"user", "bot"},
 	Flags: []common.Flag{
 		{Name: "message-id", Required: true, Desc: "message ID (om_xxx)"},
 		{Name: "user-id-type", Default: "open_id", Desc: "user ID type returned in each item", Enum: []string{"open_id", "union_id", "user_id"}},
@@ -119,7 +121,7 @@ func fetchMessageReadUsers(ctx context.Context, runtime *common.RuntimeContext) 
 		}
 		data, err := runtime.CallAPITyped(http.MethodGet, apiPath, params, nil)
 		if err != nil {
-			return nil, err
+			return nil, normalizeAllowlistedUserScopeError(err, runtime.As(), "im:message:get_as_user")
 		}
 		if pageItems, ok := data["items"].([]interface{}); ok {
 			items = append(items, pageItems...)
