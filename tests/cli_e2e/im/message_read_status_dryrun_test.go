@@ -31,7 +31,7 @@ func TestIMMessagesReadStatusDryRun(t *testing.T) {
 	result.AssertExitCode(t, 0)
 	require.Equal(t, "user", clie2e.DryRunGet(result.Stdout, "identity").String())
 	require.Equal(t, http.MethodPost, clie2e.DryRunGet(result.Stdout, "api.0.method").String())
-	require.Equal(t, "/open-apis/im/v1/messages/batch_query_read_status", clie2e.DryRunGet(result.Stdout, "api.0.url").String())
+	require.Equal(t, "/open-apis/im/v1/messages/read_status", clie2e.DryRunGet(result.Stdout, "api.0.url").String())
 	require.Equal(t, "om_one", clie2e.DryRunGet(result.Stdout, "api.0.body.message_ids.0").String())
 	require.Equal(t, "om_two", clie2e.DryRunGet(result.Stdout, "api.0.body.message_ids.1").String())
 }

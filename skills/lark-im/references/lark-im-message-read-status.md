@@ -35,13 +35,10 @@ lark-cli im +messages-read-status \
   --json
 ```
 
-The command accepts 1–50 comma-separated `om_` message IDs. The response keeps the server values `read`, `unread`, and `unexpected` unchanged.
+The command accepts 1–50 comma-separated `om_` message IDs. The response keeps the OpenAPI response unchanged:
 
-Never treat `unexpected` as `unread`. Inspect `unexpected_reason`:
-
-- `invalid`: the message ID is invalid.
-- `no_permission`: the current user cannot inspect the message.
-- `not_support`: the message does not support read-status lookup.
+- `items[].message_id` and `items[].is_read` contain statuses the server could determine.
+- `invalid_message_ids` contains messages that do not exist, are not visible to the current user, or do not support this query. The API deliberately does not expose a more specific reason.
 
 ## List users who read one message
 

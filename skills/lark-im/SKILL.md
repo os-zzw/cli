@@ -111,7 +111,7 @@ Shortcut 是对常用操作的高级封装（`lark-cli im +<verb> [flags]`）。
 | [`+chat-update`](references/lark-im-chat-update.md) | Update group chat name or description; user/bot; updates a chat's name or description |
 | [`+message-read-users`](references/lark-im-message-read-status.md) | List users who read one message; user/bot; identity-specific scopes; supports bounded auto-pagination |
 | [`+messages-mget`](references/lark-im-messages-mget.md) | Batch get messages by IDs; user/bot; fetches up to 50 om_ message IDs, formats sender names, expands thread replies |
-| [`+messages-read-status`](references/lark-im-message-read-status.md) | Batch query whether the current user read 1–50 messages; user-only; preserves unexpected status and reason |
+| [`+messages-read-status`](references/lark-im-message-read-status.md) | Batch query whether the current user read 1–50 messages; user-only; returns readable items and invalid message IDs |
 | [`+messages-reply`](references/lark-im-messages-reply.md) | Reply to a message (supports thread replies); user/bot; supports text/markdown/post/media replies, reply-in-thread, idempotency key |
 | [`+messages-resources-download`](references/lark-im-messages-resources-download.md) | Download an image or file attached to a message; user/bot |
 | [`+messages-search`](references/lark-im-messages-search.md) | Search messages across chats (supports keyword, sender, time range filters) with user or bot identity; filters by chat/sender/attachment/time, supports auto-pagination via `--page-all` / `--page-limit`, enriches results via batched mget and chats batch_query |
@@ -171,7 +171,7 @@ lark-cli im <resource> <method> [flags] # 调用 API
 
 ### messages
 
-  - `read_status` — 批量查询当前用户对消息的阅读状态。Identity: `user` only (`user_access_token`); accepts up to 50 visible message IDs. `unexpected` is indeterminate and must not be treated as unread.[Must-read](references/lark-im-message-read-status.md)
+  - `read_status` — 批量查询当前用户对消息的已读状态。Identity: `user` only (`user_access_token`); accepts up to 50 message IDs and returns readable items plus invalid message IDs.[Must-read](references/lark-im-message-read-status.md)
   - `delete` — 撤回消息。Identity: supports `user` and `bot`; for `bot` calls, the bot must be in the chat to revoke group messages; to revoke another user's group message, the bot must be the owner, an admin, or the creator; for user P2P recalls, the target user must be within the bot's availability.
   - `forward` — 转发消息。Identity: supports `user` and `bot`.
   - `merge_forward` — 合并转发消息。Identity: `bot` only (`tenant_access_token`).

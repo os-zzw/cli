@@ -16,7 +16,7 @@ const maxReadStatusMessageIDs = 50
 var ImMessagesReadStatus = common.Shortcut{
 	Service:     "im",
 	Command:     "+messages-read-status",
-	Description: "Batch query whether the current user has read up to 50 messages; preserves read, unread, and unexpected statuses",
+	Description: "Batch query whether the current user has read up to 50 messages; returns readable items and invalid message IDs",
 	Risk:        "read",
 	// 高敏权限由 Scope 平台白名单校验，不会出现在 UAT 的 scope 字段中，
 	// 因此不能参与本地 OAuth scope 预检或生成重新授权提示。
@@ -32,7 +32,7 @@ var ImMessagesReadStatus = common.Shortcut{
 	DryRun: func(ctx context.Context, runtime *common.RuntimeContext) *common.DryRunAPI {
 		body, _ := buildMessagesReadStatusBody(runtime)
 		return common.NewDryRunAPI().
-			POST("/open-apis/im/v1/messages/batch_query_read_status").
+			POST("/open-apis/im/v1/messages/read_status").
 			Body(body)
 	},
 	Execute: func(ctx context.Context, runtime *common.RuntimeContext) error {
@@ -40,7 +40,7 @@ var ImMessagesReadStatus = common.Shortcut{
 		if err != nil {
 			return err
 		}
-		data, err := runtime.CallAPITyped(http.MethodPost, "/open-apis/im/v1/messages/batch_query_read_status", nil, body)
+		data, err := runtime.CallAPITyped(http.MethodPost, "/open-apis/im/v1/messages/read_status", nil, body)
 		if err != nil {
 			return normalizeAllowlistedUserScopeError(err, runtime.As(), "im:message:get_as_user")
 		}
