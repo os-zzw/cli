@@ -32,10 +32,10 @@ var ImMessageReadUsers = common.Shortcut{
 	Flags: []common.Flag{
 		{Name: "message-id", Required: true, Desc: "message ID (om_xxx)"},
 		{Name: "user-id-type", Default: "open_id", Desc: "user ID type returned in each item", Enum: []string{"open_id", "union_id", "user_id"}},
-		{Name: "page-size", Aliases: []string{"limit"}, Type: "int", Default: "100", Desc: "page size (1-100)"},
+		{Name: "page-size", Aliases: []string{"limit"}, Type: "int", Default: fmt.Sprintf("%d", messageReadUsersDefaultPageSize), Desc: fmt.Sprintf("page size (1-%d)", messageReadUsersMaxPageSize)},
 		{Name: "page-token", Desc: "starting pagination cursor"},
 		{Name: "page-all", Type: "bool", Desc: "automatically paginate through all pages (capped by --page-limit)"},
-		{Name: "page-limit", Type: "int", Default: "10", Desc: "max pages to fetch with --page-all (default 10, 0 = unlimited)"},
+		{Name: "page-limit", Type: "int", Default: fmt.Sprintf("%d", messageReadUsersDefaultPageLimit), Desc: fmt.Sprintf("max pages to fetch with --page-all (default %d, 0 = unlimited)", messageReadUsersDefaultPageLimit)},
 	},
 	Validate: func(ctx context.Context, runtime *common.RuntimeContext) error {
 		return validateMessageReadUsers(runtime)
