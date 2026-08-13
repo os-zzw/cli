@@ -13,7 +13,7 @@ Both underlying OpenAPIs support user identity through a user access token (UAT)
 
 | Shortcut | Identity | Scope |
 |---|---|---|
-| `+messages-read-status` | user only | `im:message:get_as_user` |
+| `+messages-read-status` | user only | `im:message:readonly` (recommended), `im:message`, or `im:message:get_as_user` |
 | `+message-read-users` | user | `im:message:get_as_user` |
 | `+message-read-users` | bot | `im:message:readonly` |
 
@@ -35,7 +35,7 @@ lark-cli im +messages-read-status \
   --json
 ```
 
-The command accepts 1–50 comma-separated `om_` message IDs. The response keeps the OpenAPI response unchanged:
+The command accepts 1–50 comma-separated `om_` message IDs. The three scopes above are alternatives; any one is sufficient, and the CLI recommends the least-privileged OAuth scope `im:message:readonly`. The response keeps the OpenAPI response unchanged:
 
 - `items[].message_id` and `items[].is_read` contain statuses the server could determine.
 - `invalid_message_ids` contains messages that do not exist, are not visible to the current user, or do not support this query. The API deliberately does not expose a more specific reason.
@@ -83,6 +83,7 @@ Prefer the shortcuts for flag validation, identity-specific scope hints, and rea
 | Symptom | Meaning | Action |
 |---|---|---|
 | `--as bot is not supported` for read status | The batch endpoint requires user identity | Switch to `--as user` |
+| Missing `im:message:readonly` or `im:message` | A regular OAuth scope has not been granted | Follow the CLI authorization hint to grant one supported scope |
 | Missing `im:message:get_as_user` | The allowlisted high-sensitivity scope has not taken effect for this app | Verify the app ID and publication state in the Scope platform; do not request it through OAuth |
 | Bot permission denied | The application lacks a bot scope | Open the `console_url` from the typed error and enable the requested scope |
 | Empty read-user list | No user has read the message, or sender/time constraints are not met | Verify the message sender and seven-day window |

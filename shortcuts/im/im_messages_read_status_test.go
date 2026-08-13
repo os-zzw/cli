@@ -58,6 +58,23 @@ func TestNormalizeAllowlistedUserScopeErrorLeavesBotErrorUnchanged(t *testing.T)
 	}
 }
 
+func TestNormalizeAllowlistedUserScopeErrorLeavesOAuthScopeErrorUnchanged(t *testing.T) {
+	source := errs.NewPermissionError(errs.SubtypeMissingScope, "missing OAuth scope").
+		WithMissingScopes("im:message:readonly").
+		WithHint("run auth login")
+
+	got := normalizeAllowlistedUserScopeError(source, core.AsUser, "im:message:get_as_user")
+	if got != source {
+		t.Fatalf("error instance changed: got %p, want %p", got, source)
+	}
+	if !reflect.DeepEqual(source.MissingScopes, []string{"im:message:readonly"}) {
+		t.Fatalf("MissingScopes = %v, want [im:message:readonly]", source.MissingScopes)
+	}
+	if source.Hint != "run auth login" {
+		t.Fatalf("Hint = %q, want OAuth recovery hint", source.Hint)
+	}
+}
+
 func TestBuildMessagesReadStatusBody(t *testing.T) {
 	runtime := newMessagesReadStatusTestRuntime(t, "om_one, om_two")
 
@@ -102,11 +119,11 @@ func TestMessagesReadStatusShortcutContract(t *testing.T) {
 	if !reflect.DeepEqual(ImMessagesReadStatus.AuthTypes, []string{"user"}) {
 		t.Fatalf("AuthTypes = %v, want [user]", ImMessagesReadStatus.AuthTypes)
 	}
-	if got := ImMessagesReadStatus.ScopesForIdentity("user"); len(got) != 0 {
-		t.Fatalf("user preflight scopes = %v, want none for allowlisted scope", got)
+	if got := ImMessagesReadStatus.ScopesForIdentity("user"); !reflect.DeepEqual(got, []string{"im:message:readonly"}) {
+		t.Fatalf("user preflight scopes = %v, want [im:message:readonly]", got)
 	}
-	if got := ImMessagesReadStatus.DeclaredScopesForIdentity("user"); len(got) != 0 {
-		t.Fatalf("declared user scopes = %v, want none to avoid OAuth recovery for allowlisted scope", got)
+	if got := ImMessagesReadStatus.DeclaredScopesForIdentity("user"); !reflect.DeepEqual(got, []string{"im:message:readonly"}) {
+		t.Fatalf("declared user scopes = %v, want [im:message:readonly]", got)
 	}
 	if ImMessagesReadStatus.Risk != "read" {
 		t.Fatalf("Risk = %q, want read", ImMessagesReadStatus.Risk)

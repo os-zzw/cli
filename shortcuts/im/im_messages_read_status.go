@@ -18,9 +18,8 @@ var ImMessagesReadStatus = common.Shortcut{
 	Command:     "+messages-read-status",
 	Description: "Batch query whether the current user has read up to 50 messages; returns readable items and invalid message IDs",
 	Risk:        "read",
-	// 高敏权限由 Scope 平台白名单校验，不会出现在 UAT 的 scope 字段中，
-	// 因此不能参与本地 OAuth scope 预检或生成重新授权提示。
-	Scopes:    []string{},
+	// 接口支持多个可选权限；CLI 预检其中权限最小且可通过 OAuth 授权的只读权限。
+	Scopes:    []string{"im:message:readonly"},
 	AuthTypes: []string{"user"},
 	Flags: []common.Flag{
 		{Name: "message-ids", Aliases: []string{"message-id"}, Required: true, Desc: "message IDs, comma-separated (1-50 om_xxx IDs)"},

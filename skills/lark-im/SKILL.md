@@ -228,9 +228,9 @@ lark-cli im <resource> <method> [flags] # 调用 API
 | `chat.managers.delete_managers` | `im:chat.managers:write_only` |
 | `chat.moderation.get` | `im:chat.moderation:read` |
 | `chat.moderation.update` | `im:chat:moderation:write_only` |
-| `+messages-read-status` | user: `im:message:get_as_user` |
+| `+messages-read-status` | user: `im:message:readonly` (recommended), `im:message`, or `im:message:get_as_user` |
 | `+message-read-users` | user: `im:message:get_as_user`; bot: `im:message:readonly` |
-| `messages.read_status` | `im:message:get_as_user` |
+| `messages.read_status` | `im:message:readonly` (recommended), `im:message`, or `im:message:get_as_user` |
 | `messages.delete` | `im:message:recall` |
 | `messages.forward` | `im:message` |
 | `messages.merge_forward` | `im:message` |

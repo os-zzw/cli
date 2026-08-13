@@ -6,6 +6,7 @@ package im
 import (
 	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/larksuite/cli/errs"
 	"github.com/larksuite/cli/internal/core"
@@ -18,6 +19,10 @@ func normalizeAllowlistedUserScopeError(err error, identity core.Identity, scope
 	}
 	var permissionErr *errs.PermissionError
 	if !errors.As(err, &permissionErr) {
+		return err
+	}
+	// 只有服务端明确返回高敏白名单权限时才替换恢复建议，普通权限仍走 OAuth 授权流程。
+	if !slices.Contains(permissionErr.MissingScopes, scope) {
 		return err
 	}
 	permissionErr.WithMissingScopes()
