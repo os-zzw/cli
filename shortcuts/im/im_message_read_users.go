@@ -24,7 +24,7 @@ const (
 var ImMessageReadUsers = common.Shortcut{
 	Service:     "im",
 	Command:     "+message-read-users",
-	Description: "List users who have read one message; supports user and bot identities with optional automatic pagination",
+	Description: "List users who have read one message; the caller must still be in the chat; supports user and bot identities with optional automatic pagination",
 	Risk:        "read",
 	// 用户侧高敏权限由 Scope 平台白名单校验，不会出现在 UAT 的 scope 字段中，
 	// 因此仅保留 Bot 普通 OAuth scope 的本地预检。

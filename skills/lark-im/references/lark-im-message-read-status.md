@@ -17,7 +17,7 @@ Both underlying OpenAPIs support user identity through a user access token (UAT)
 | `+message-read-users` | user | `im:message:get_as_user` |
 | `+message-read-users` | bot | `im:message:readonly` |
 
-For `+message-read-users`, a user can query only messages they sent within the last seven days. A bot must be in the chat and can query only messages sent by that bot within the last seven days.
+For `+message-read-users`, the caller must still be in the chat. A user can query only messages they sent within the last seven days, while a bot can query only messages sent by that bot within the last seven days.
 
 ## Batch query the current user's read status
 
@@ -86,7 +86,7 @@ Prefer the shortcuts for flag validation, identity-specific scope hints, and rea
 | Missing `im:message:readonly` or `im:message` | A regular OAuth scope has not been granted | Follow the CLI authorization hint to grant one supported scope |
 | Missing `im:message:get_as_user` | The allowlisted high-sensitivity scope has not taken effect for this app | Verify the app ID and publication state in the Scope platform; do not request it through OAuth |
 | Bot permission denied | The application lacks a bot scope | Open the `console_url` from the typed error and enable the requested scope |
-| Empty read-user list | No user has read the message, or sender/time constraints are not met | Verify the message sender and seven-day window |
+| Empty read-user list | No user has read the message, or sender/time constraints are not met | Verify chat membership, the message sender, and the seven-day window |
 
 ## References
 
